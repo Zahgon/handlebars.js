@@ -1,20 +1,9 @@
-.rvmrc
 .DS_Store
 /tmp/
 *.sublime-project
 *.sublime-workspace
-npm-debug.log
 .idea
-/yarn-error.log
-/yarn.lock
-node_modules
-/handlebars-release.tgz
-.nyc_output
 
-# Generated files
-lib/handlebars/compiler/parser.js
-/coverage/
-/dist/
-/test-results/
-/tests/integration/*/dist/
-/spec/tmp/*
+# Build output
+/handlebars
+/handlebars.exe

@@ -7,83 +7,32 @@ on:
   pull_request: {}
 
 jobs:
-  lint:
-    name: Lint
-    runs-on: 'ubuntu-latest'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '16'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Lint
-        run: npm run lint
-
   test:
-    name: Test (Node)
+    name: Test (Go)
     runs-on: ${{ matrix.operating-system }}
     strategy:
       fail-fast: false
       matrix:
         operating-system: ['ubuntu-latest', 'windows-latest']
-        # https://nodejs.org/en/about/releases/
-        node-version: ['16', '18', '20', '22']
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
         with:
-          submodules: true
+          go-version: '1.23'
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
+      - name: Format
+        if: runner.os == 'Linux'
+        run: test -z "$(gofmt -l .)"
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Test
-        run: npm run test
-
-      - name: Test (Integration)
-        # https://github.com/webpack/webpack/issues/14532
-        if: ${{ matrix.node-version == '16' }}
-        run: |
-          cd ./tests/integration/rollup-test && ./test.sh && cd -
-          cd ./tests/integration/webpack-babel-test && ./test.sh && cd -
-          cd ./tests/integration/webpack-test && ./test.sh && cd -
-
-  browser:
-    name: Test (Browser)
-    runs-on: 'ubuntu-22.04'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '16'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright
-        run: |
-          npx playwright install-deps
-          npx playwright install
+      - name: Vet
+        run: go vet ./...
 
       - name: Build
-        run: npx grunt prepare
+        run: go build -o handlebars .
 
       - name: Test
-        run: npm run test:browser
+        run: go test ./...
